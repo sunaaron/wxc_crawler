@@ -12,7 +12,7 @@ from index_crawler import crawl_index
 from post_crawler import crawl_post
 import mysql_writer
 
-async def fetch_post_data(href_list):
+async def fetch_post_data(href_list, target_date_str):
     """Fetch detailed data for each post URL."""
     post_data_results = []
     
@@ -76,6 +76,18 @@ async def main(target_date_str=None):
         # Use the provided date string
         print(f"Using provided target date: {target_date_str}")
     
+    # Convert the target date to mmddyyyy format for storage
+    # Extract month, day, year from the target_date_str (format mm/dd/yyyy)
+    if "/" in target_date_str:
+        parts = target_date_str.split("/")
+        if len(parts) == 3:
+            # Convert mm/dd/yyyy to mmddyyyy
+            date_for_storage = parts[0] + parts[1] + parts[2]
+        else:
+            date_for_storage = "00000000"  # Default fallback
+    else:
+        date_for_storage = "00000000"  # Default fallback
+    
     # Crawl pages 1 to 10 and filter by date
     print("\n--- Crawling pages 1 to 10 ---")
     
@@ -98,7 +110,8 @@ async def main(target_date_str=None):
         post_data_results = {}
         
         for date_str, href_list in all_matching_posts.items():
-            post_data_results[date_str] = await fetch_post_data(href_list)
+
+            post_data_results[date_str] = await fetch_post_data(href_list, target_date_str)
         
         # Store data in MySQL database
         print("\n--- Storing Data in MySQL ---")
@@ -113,7 +126,8 @@ async def main(target_date_str=None):
             mysql_writer.create_wxc_posts_table()
             
             # Insert all posts into database
-            success_count = mysql_writer.insert_multiple_posts(all_post_data)
+
+            success_count = mysql_writer.insert_multiple_posts(all_post_data, date_for_storage)
             print(f"Successfully stored {success_count} posts in MySQL database")
         else:
             print("No post data to store in database")
