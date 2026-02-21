@@ -57,7 +57,7 @@ def create_wxc_posts_table():
             cursor.close()
             connection.close()
 
-def insert_post_data(post_data, category="znjy"):
+def insert_post_data(post_data, category):
     """Insert post data into wxc_posts table."""
     connection = create_connection()
     if connection is None:
@@ -77,7 +77,7 @@ def insert_post_data(post_data, category="znjy"):
         post_url = post_data.get('url', '')
         post_title = post_data.get('data', {}).get('post_title', '')
         post_body = post_data.get('data', {}).get('post_content', '')
-        comments = json.dumps(post_data.get('data', {}).get('comments', []))
+        comments = json.dumps(post_data.get('data', {}).get('comments', []), ensure_ascii=False)
         llm_summary = ""  # Empty for now, can be populated with LLM analysis
         
         # Execute the insert
@@ -102,12 +102,12 @@ def insert_post_data(post_data, category="znjy"):
             cursor.close()
             connection.close()
 
-def insert_multiple_posts(post_data_list):
+def insert_multiple_posts(post_data_list, category="znjy"):
     """Insert multiple posts into the database."""
     success_count = 0
     
     for post_data in post_data_list:
-        if insert_post_data(post_data):
+        if insert_post_data(post_data, category):
             success_count += 1
     
     print(f"Successfully inserted {success_count} out of {len(post_data_list)} posts")

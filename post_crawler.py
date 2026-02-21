@@ -29,7 +29,7 @@ async def crawl_post(post_url: str):
             return {
                 "post_title": post_title,
                 "post_content": post_content,
-                "comments": comment_titles
+                "comments": comment_titles,
             } 
         else:
             print(f"Failed to crawl: {result.url}")

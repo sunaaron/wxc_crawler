@@ -21,7 +21,9 @@ async def fetch_post_data(href_list):
         try:
             # Call the post_crawler to get post data
             post_data = await crawl_post(href)
-            if post_data:
+            if len(post_data["comments"]) == 0:
+                print(f"Skipping empty post: {href}")
+            elif post_data:
                 post_data_results.append({
                     "url": href,
                     "data": post_data
@@ -106,10 +108,7 @@ async def main(target_date_str=None):
         for date_str, posts in post_data_results.items():
             all_post_data.extend(posts)
         
-        if all_post_data:
-            # Create the table if it doesn't exist
-            mysql_writer.create_wxc_posts_table()
-            
+        if all_post_data:            
             # Insert all posts into database
             success_count = mysql_writer.insert_multiple_posts(all_post_data)
             print(f"Successfully stored {success_count} posts in MySQL database")
