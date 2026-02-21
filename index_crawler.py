@@ -3,10 +3,11 @@ from crawl4ai import AsyncWebCrawler
 from crawl4ai.async_configs import BrowserConfig, CrawlerRunConfig
 from bs4 import BeautifulSoup
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
 # Import the helper functions from utils module
 from utils import fetch_page_content, parse_html_content
+from constants import BASE_URL, PAGE_PARAM, DEFAULT_PAGE_NUMBER
 
 async def extract_div_elements(soup: BeautifulSoup) -> List:
     """Extract all div elements with class 'odd' or 'even'."""
@@ -52,14 +53,17 @@ def extract_date_strings(div_elements: List) -> List:
     
     return date_strings
 
-async def crawl_index(page_number: int):
-    """Main function to orchestrate the web scraping process for a specific page."""
+async def crawl_index(page_number: int) -> Dict[str, List[str]]:
+    """Main function to orchestrate the web scraping process for a specific page.
+    
+    Returns:
+        Dict[str, List[str]]: Dictionary mapping date strings to lists of hrefs
+    """
     # Construct URL with page number
-    base_url = "https://bbs.wenxuecity.com/znjy/"
-    if page_number <= 1:
-        url = base_url
+    if page_number <= DEFAULT_PAGE_NUMBER:
+        url = BASE_URL
     else:
-        url = f"{base_url}?page={page_number}"
+        url = f"{BASE_URL}{PAGE_PARAM}{page_number}"
     
     print(f"Scraping page {page_number} with URL: {url}")
     
@@ -67,7 +71,7 @@ async def crawl_index(page_number: int):
     html_content = await fetch_page_content(url)
     if not html_content:
         print("Failed to fetch HTML content")
-        return
+        return {}
     
     # Parse HTML
     soup = parse_html_content(html_content)
@@ -82,13 +86,28 @@ async def crawl_index(page_number: int):
     # Extract date strings
     date_strings = extract_date_strings(div_elements)
     
+    # Merge href_list and date_strings into a single dictionary
+    result_dict = {}
+    
+    # For each date string, create an entry with the href list
+    # This assumes that each date corresponds to a div element and its href
+    for i, date_str in enumerate(date_strings):
+        if date_str not in result_dict:
+            result_dict[date_str] = []
+        # Add the corresponding href if available
+        if i < len(href_list):
+            result_dict[date_str].append(BASE_URL + href_list[i].lstrip('./'))
+    
     # Print results
     print(f"\nTotal hrefs found: {len(href_list)}")
     for i, href in enumerate(href_list):
         print(f"Href {i+1}: {href}")
+    
+    return result_dict
 
 if __name__ == "__main__":
     # Default to page 1 if no argument provided
     import sys
-    page_number = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-    asyncio.run(crawl_index(page_number))
+    page_number = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PAGE_NUMBER
+    result = asyncio.run(crawl_index(page_number))
+    print(f"\nResult dictionary: {result}")
