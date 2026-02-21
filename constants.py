@@ -1,7 +1,7 @@
 """Constants used throughout the web scraping application."""
 
 # Base URL for the target website
-BASE_URL = "https://bbs.wenxuecity.com/znjy/"
+ZNJY_BASE_URL = "https://bbs.wenxuecity.com/znjy/"
 
 # Page parameter for pagination
 PAGE_PARAM = "?page="

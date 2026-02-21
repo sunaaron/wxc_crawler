@@ -4,10 +4,12 @@ from crawl4ai.async_configs import BrowserConfig, CrawlerRunConfig
 from bs4 import BeautifulSoup
 import re
 from typing import List, Optional, Tuple, Dict
+import sys
+from datetime import datetime, timedelta
 
 # Import the helper functions from utils module
 from utils import fetch_page_content, parse_html_content
-from constants import BASE_URL, PAGE_PARAM, DEFAULT_PAGE_NUMBER
+from constants import ZNJY_BASE_URL, PAGE_PARAM, DEFAULT_PAGE_NUMBER
 
 async def extract_div_elements(soup: BeautifulSoup) -> List:
     """Extract all div elements with class 'odd' or 'even'."""
@@ -61,9 +63,9 @@ async def crawl_index(page_number: int) -> Dict[str, List[str]]:
     """
     # Construct URL with page number
     if page_number <= DEFAULT_PAGE_NUMBER:
-        url = BASE_URL
+        url = ZNJY_BASE_URL
     else:
-        url = f"{BASE_URL}{PAGE_PARAM}{page_number}"
+        url = f"{ZNJY_BASE_URL}{PAGE_PARAM}{page_number}"
     
     print(f"Scraping page {page_number} with URL: {url}")
     
@@ -96,7 +98,7 @@ async def crawl_index(page_number: int) -> Dict[str, List[str]]:
             result_dict[date_str] = []
         # Add the corresponding href if available
         if i < len(href_list):
-            result_dict[date_str].append(BASE_URL + href_list[i].lstrip('./'))
+            result_dict[date_str].append(ZNJY_BASE_URL + href_list[i].lstrip('./'))
     
     # Print results
     print(f"\nTotal hrefs found: {len(href_list)}")
@@ -105,9 +107,48 @@ async def crawl_index(page_number: int) -> Dict[str, List[str]]:
     
     return result_dict
 
+async def crawl_index_with_date_filter(pages_to_crawl: range, target_date_offset: int = 3) -> Dict[str, List[str]]:
+    """
+    Crawl index pages and filter posts by date.
+    
+    Args:
+        pages_to_crawl: Range of page numbers to crawl (e.g., range(3, 11) for pages 3-10)
+        target_date_offset: How many days back from today to filter for (default 3)
+    """
+    
+    # Calculate the target date (today - offset days)
+    target_date = datetime.now() - timedelta(days=target_date_offset)
+    target_date_str = target_date.strftime("%m/%d/%Y")
+    
+    print(f"Target date for filtering: {target_date_str}")
+    
+    # Store all results
+    all_results = {}
+    
+    # Crawl each page in the specified range
+    for page_num in pages_to_crawl:
+        print(f"\n--- Crawling page {page_num} ---")
+        
+        # Get results from crawl_index function
+        result = await crawl_index(page_num)
+        
+        # Filter results by target date
+        filtered_results = {}
+        for date_str, href_list in result.items():
+            if date_str == target_date_str:
+                filtered_results[date_str] = href_list
+                print(f"Found {len(href_list)} posts with date {date_str}")
+        
+        # Merge filtered results into all_results
+        for date_str, href_list in filtered_results.items():
+            if date_str not in all_results:
+                all_results[date_str] = []
+            all_results[date_str].extend(href_list)
+    
+    return all_results
+
 if __name__ == "__main__":
     # Default to page 1 if no argument provided
-    import syssumm
     page_number = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PAGE_NUMBER
     result = asyncio.run(crawl_index(page_number))
     print(f"\nResult dictionary: {result}")
