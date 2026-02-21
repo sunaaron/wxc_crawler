@@ -107,7 +107,7 @@ async def crawl_index(page_number: int) -> Dict[str, List[str]]:
 
 if __name__ == "__main__":
     # Default to page 1 if no argument provided
-    import sys
+    import syssumm
     page_number = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PAGE_NUMBER
     result = asyncio.run(crawl_index(page_number))
     print(f"\nResult dictionary: {result}")
