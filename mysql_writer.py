@@ -7,16 +7,17 @@ import mysql.connector
 from mysql.connector import Error
 import json
 from datetime import datetime
+from constants import MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, WXC_POSTS_TABLE
 
 def create_connection():
     """Create connection to MySQL database."""
     try:
         connection = mysql.connector.connect(
-            host='192.168.86.55',
-            port=3306,
-            database='wxc_crawler',
-            user='crawler_admin',  # Replace with actual username
-            password='123'  # Replace with actual password
+            host=MYSQL_HOST,
+            port=MYSQL_PORT,
+            database=MYSQL_DATABASE,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD
         )
         return connection
     except Error as e:
@@ -33,13 +34,13 @@ def create_wxc_posts_table():
         cursor = connection.cursor()
         
         # First check if table exists and has the new structure
-        cursor.execute("SHOW TABLES LIKE 'wxc_posts'")
+        cursor.execute(f"SHOW TABLES LIKE '{WXC_POSTS_TABLE}'")
         table_exists = cursor.fetchone()
         
         if not table_exists:
             # Create new table with the updated schema
-            create_table_query = """
-            CREATE TABLE wxc_posts (
+            create_table_query = f"""
+            CREATE TABLE {WXC_POSTS_TABLE} (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 date_str CHAR(8),
                 category VARCHAR(255),
@@ -53,15 +54,15 @@ def create_wxc_posts_table():
             )"""
             
             cursor.execute(create_table_query)
-            print("wxc_posts table created successfully with new schema")
+            print(f"{WXC_POSTS_TABLE} table created successfully with new schema")
         else:
             # Table exists, check and modify structure if needed
             # Check if date_str column exists
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT COLUMN_NAME 
                 FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = 'wxc_crawler' 
-                AND TABLE_NAME = 'wxc_posts' 
+                WHERE TABLE_SCHEMA = '{MYSQL_DATABASE}' 
+                AND TABLE_NAME = '{WXC_POSTS_TABLE}' 
                 AND COLUMN_NAME = 'date_str'
             """)
             
@@ -69,19 +70,19 @@ def create_wxc_posts_table():
             
             if not date_str_exists:
                 # Add the date_str column
-                alter_query = """
-                ALTER TABLE wxc_posts 
+                alter_query = f"""
+                ALTER TABLE {WXC_POSTS_TABLE} 
                 ADD COLUMN date_str CHAR(8) AFTER id
                 """
                 cursor.execute(alter_query)
-                print("Added date_str column to wxc_posts table")
+                print(f"Added date_str column to {WXC_POSTS_TABLE} table")
             
             # Check if the multi-index exists
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT INDEX_NAME 
                 FROM INFORMATION_SCHEMA.STATISTICS 
-                WHERE TABLE_SCHEMA = 'wxc_crawler' 
-                AND TABLE_NAME = 'wxc_posts' 
+                WHERE TABLE_SCHEMA = '{MYSQL_DATABASE}' 
+                AND TABLE_NAME = '{WXC_POSTS_TABLE}' 
                 AND INDEX_NAME = 'idx_category_date'
             """)
             
@@ -89,8 +90,8 @@ def create_wxc_posts_table():
             
             if not index_exists:
                 # Create the multi-index
-                create_index_query = """
-                CREATE INDEX idx_category_date ON wxc_posts (category, date_str)
+                create_index_query = f"""
+                CREATE INDEX idx_category_date ON {WXC_POSTS_TABLE} (category, date_str)
                 """
                 cursor.execute(create_index_query)
                 print("Created multi-index on category and date_str")
@@ -99,7 +100,7 @@ def create_wxc_posts_table():
         return True
         
     except Error as e:
-        print(f"Error creating/updating wxc_posts table: {e}")
+        print(f"Error creating/updating {WXC_POSTS_TABLE} table: {e}")
         return False
     finally:
         if connection and connection.is_connected():
@@ -116,8 +117,8 @@ def insert_post_data(post_data, category, date_str=None):
         cursor = connection.cursor()
         
         # Prepare the insert query
-        insert_query = """
-        INSERT INTO wxc_posts 
+        insert_query = f"""
+        INSERT INTO {WXC_POSTS_TABLE} 
         (date_str, category, post_url, post_title, post_body, comments, llm_summary)
         VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         
