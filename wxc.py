@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main script to crawl index pages 3-10 and filter posts by date.
+Main script to crawl index pages 1-10 and filter posts by date.
 Today's date is when the main function is called.
 Filter posts where date_str = today_date - 3
 """
@@ -22,7 +22,7 @@ async def fetch_post_data(href_list):
             # Call the post_crawler to get post data
             post_data = await crawl_post(href)
             if len(post_data["comments"]) == 0:
-                print(f"Skipping empty post: {href}")
+                 print(f"Skipping empty post: {href}")
             elif post_data:
                 post_data_results.append({
                     "url": href,
@@ -39,8 +39,8 @@ async def crawl_and_filter_posts(pages_to_crawl, target_date_str):
     """Crawl pages and filter posts by date."""
     all_matching_posts = {}
     
-    # Loop through pages 3 to 10
-    for page_num in pages_to_crawl:  # Pages 3 through 10 inclusive
+    # Loop through pages 1 to 10
+    for page_num in pages_to_crawl:  # Pages 1 through 10 inclusive
         print(f"\nCrawling page {page_num}...")
         
         # Get results from crawl_index function
@@ -76,10 +76,10 @@ async def main(target_date_str=None):
         # Use the provided date string
         print(f"Using provided target date: {target_date_str}")
     
-    # Crawl pages 3 to 10 and filter by date
-    print("\n--- Crawling pages 3 to 10 ---")
+    # Crawl pages 1 to 10 and filter by date
+    print("\n--- Crawling pages 1 to 10 ---")
     
-    pages_to_crawl = range(3, 11)  # Pages 3 through 10 inclusive
+    pages_to_crawl = range(1, 11)  # Pages 1 through 10 inclusive
     all_matching_posts = await crawl_and_filter_posts(pages_to_crawl, target_date_str)
     
     # Display final results
@@ -109,6 +109,9 @@ async def main(target_date_str=None):
             all_post_data.extend(posts)
         
         if all_post_data:            
+            # Create the table if it doesn't exist
+            mysql_writer.create_wxc_posts_table()
+            
             # Insert all posts into database
             success_count = mysql_writer.insert_multiple_posts(all_post_data)
             print(f"Successfully stored {success_count} posts in MySQL database")
