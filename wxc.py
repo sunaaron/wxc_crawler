@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import sys
 from index_crawler import crawl_index
 from post_crawler import crawl_post
+import mysql_writer
 
 async def fetch_post_data(href_list):
     """Fetch detailed data for each post URL."""
@@ -96,6 +97,24 @@ async def main(target_date_str=None):
         
         for date_str, href_list in all_matching_posts.items():
             post_data_results[date_str] = await fetch_post_data(href_list)
+        
+        # Store data in MySQL database
+        print("\n--- Storing Data in MySQL ---")
+        
+        # Flatten all post data for database insertion
+        all_post_data = []
+        for date_str, posts in post_data_results.items():
+            all_post_data.extend(posts)
+        
+        if all_post_data:
+            # Create the table if it doesn't exist
+            mysql_writer.create_wxc_posts_table()
+            
+            # Insert all posts into database
+            success_count = mysql_writer.insert_multiple_posts(all_post_data)
+            print(f"Successfully stored {success_count} posts in MySQL database")
+        else:
+            print("No post data to store in database")
     
     return all_matching_posts
 
