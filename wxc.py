@@ -9,29 +9,35 @@ import asyncio
 from datetime import datetime, timedelta
 import sys
 from index_crawler import crawl_index
+from post_crawler import crawl_post
 
-async def main(target_date_str=None):
-    """Main function that implements the requirements."""
+async def fetch_post_data(href_list):
+    """Fetch detailed data for each post URL."""
+    post_data_results = []
     
-    # If no date string provided, use default logic (today - 3 days)
-    if target_date_str is None:
-        # Calculate target date (3 days back from today)
-        target_date = datetime.now() - timedelta(days=3)
-        target_date_str = target_date.strftime("%m/%d/%Y")
-        
-        print(f"Today's date: {datetime.now().strftime('%m/%d/%Y')}")
-        print(f"Target date (3 days back): {target_date_str}")
-    else:
-        # Use the provided date string
-        print(f"Using provided target date: {target_date_str}")
+    for href in href_list:
+        print(f"Fetching data for post: {href}")
+        try:
+            # Call the post_crawler to get post data
+            post_data = await crawl_post(href)
+            if post_data:
+                post_data_results.append({
+                    "url": href,
+                    "data": post_data
+                })
+            else:
+                print(f"Failed to fetch data for: {href}")
+        except Exception as e:
+            print(f"Error fetching data for {href}: {e}")
     
-    # Crawl pages 3 to 10
-    print("\n--- Crawling pages 3 to 10 ---")
-    
+    return post_data_results
+
+async def crawl_and_filter_posts(pages_to_crawl, target_date_str):
+    """Crawl pages and filter posts by date."""
     all_matching_posts = {}
     
     # Loop through pages 3 to 10
-    for page_num in range(3, 11):  # Pages 3 through 10 inclusive
+    for page_num in pages_to_crawl:  # Pages 3 through 10 inclusive
         print(f"\nCrawling page {page_num}...")
         
         # Get results from crawl_index function
@@ -50,6 +56,29 @@ async def main(target_date_str=None):
                 all_matching_posts[date_str] = []
             all_matching_posts[date_str].extend(href_list)
     
+    return all_matching_posts
+
+async def main(target_date_str=None):
+    """Main function that implements the requirements."""
+    
+    # If no date string provided, use default logic (today - 3 days)
+    if target_date_str is None:
+        # Calculate target date (3 days back from today)
+        target_date = datetime.now() - timedelta(days=3)
+        target_date_str = target_date.strftime("%m/%d/%Y")
+        
+        print(f"Today's date: {datetime.now().strftime('%m/%d/%Y')}")
+        print(f"Target date (3 days back): {target_date_str}")
+    else:
+        # Use the provided date string
+        print(f"Using provided target date: {target_date_str}")
+    
+    # Crawl pages 3 to 10 and filter by date
+    print("\n--- Crawling pages 3 to 10 ---")
+    
+    pages_to_crawl = range(3, 11)  # Pages 3 through 10 inclusive
+    all_matching_posts = await crawl_and_filter_posts(pages_to_crawl, target_date_str)
+    
     # Display final results
     print("\n=== FINAL RESULTS ===")
     if all_matching_posts:
@@ -59,6 +88,14 @@ async def main(target_date_str=None):
                 print(f"  {i}. {href}")
     else:
         print("No posts found matching the date filter.")
+    
+    # If we have results, fetch the actual post data for each href
+    if all_matching_posts:
+        print("\n--- Fetching Post Data ---")
+        post_data_results = {}
+        
+        for date_str, href_list in all_matching_posts.items():
+            post_data_results[date_str] = await fetch_post_data(href_list)
     
     return all_matching_posts
 
