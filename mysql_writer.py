@@ -106,7 +106,7 @@ def create_wxc_posts_table():
             cursor.close()
             connection.close()
 
-def insert_post_data(post_data, date_str=None):
+def insert_post_data(post_data, category, date_str=None):
     """Insert post data into wxc_posts table."""
     connection = create_connection()
     if connection is None:
@@ -127,12 +127,11 @@ def insert_post_data(post_data, date_str=None):
             # For now, we'll use a placeholder - in real implementation,
             # this would be determined by the actual crawled date
             date_str = "00000000"  # Default placeholder
-            
-        category = "general"  # Default category, can be modified based on logic
+
         post_url = post_data.get('url', '')
         post_title = post_data.get('data', {}).get('post_title', '')
         post_body = post_data.get('data', {}).get('post_content', '')
-        comments = json.dumps(post_data.get('data', {}).get('comments', []))
+        comments = json.dumps(post_data.get('data', {}).get('comments', []), ensure_ascii=False)
         llm_summary = ""  # Empty for now, can be populated with LLM analysis
         
         # Execute the insert
@@ -158,12 +157,12 @@ def insert_post_data(post_data, date_str=None):
             cursor.close()
             connection.close()
 
-def insert_multiple_posts(post_data_list, date_str=None):
+def insert_multiple_posts(post_data_list, category, date_str=None):
     """Insert multiple posts into the database."""
     success_count = 0
     
     for post_data in post_data_list:
-        if insert_post_data(post_data, date_str):
+        if insert_post_data(post_data, category, date_str):
             success_count += 1
     
     print(f"Successfully inserted {success_count} out of {len(post_data_list)} posts")

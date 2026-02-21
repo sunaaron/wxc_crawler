@@ -2,6 +2,7 @@
 
 # Base URL for the target website
 ZNJY_BASE_URL = "https://bbs.wenxuecity.com/znjy/"
+ZNJY_CATEGORY = 'znjy'
 
 # Page parameter for pagination
 PAGE_PARAM = "?page="

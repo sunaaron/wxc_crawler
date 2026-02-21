@@ -8,6 +8,7 @@ Filter posts where date_str = today_date - 3
 import asyncio
 from datetime import datetime, timedelta
 import sys
+from constants import ZNJY_CATEGORY
 from index_crawler import crawl_index
 from post_crawler import crawl_post
 import mysql_writer
@@ -121,13 +122,9 @@ async def main(target_date_str=None):
         for date_str, posts in post_data_results.items():
             all_post_data.extend(posts)
         
-        if all_post_data:            
-            # Create the table if it doesn't exist
-            mysql_writer.create_wxc_posts_table()
-            
+        if all_post_data:
             # Insert all posts into database
-
-            success_count = mysql_writer.insert_multiple_posts(all_post_data, date_for_storage)
+            success_count = mysql_writer.insert_multiple_posts(all_post_data, ZNJY_CATEGORY, date_for_storage)
             print(f"Successfully stored {success_count} posts in MySQL database")
         else:
             print("No post data to store in database")
