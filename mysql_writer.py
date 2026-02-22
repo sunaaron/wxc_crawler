@@ -191,6 +191,36 @@ def insert_multiple_posts(post_data_list, category, date_str=None):
     print(f"Successfully inserted {success_count} out of {len(post_data_list)} posts")
     return success_count
 
+def read_max_date_by_category(category):
+    """Return the maximum date_str for a given category."""
+    connection = create_connection()
+    if connection is None:
+        return None
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Query to get the maximum date_str for a given category
+        query = f"""
+        SELECT MAX(date_str) 
+        FROM {WXC_POSTS_TABLE} 
+        WHERE category = %s
+        """
+        
+        cursor.execute(query, (category,))
+        result = cursor.fetchone()
+        
+        # Return the max date_str or None if no records found
+        return result[0] if result and result[0] is not None else None
+        
+    except Error as e:
+        print(f"Error reading max date by category: {e}")
+        return None
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
 def test_database_connection():
     """Test if we can connect to the database."""
     connection = create_connection()

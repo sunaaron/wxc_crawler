@@ -77,7 +77,12 @@ async def main(category,target_date_str=None):
     else:
         # Use the provided date string
         print(f"Using provided target date: {target_date_str}")
-        
+    
+    max_date_str = mysql_writer.read_max_date_by_category(category)
+    if max_date_str >= target_date_str:
+        print(f"Data for category '{category}' is already up to date (max date in DB: {max_date_str}). No crawling needed.")
+        return {}
+
     # Crawl pages 1 to 10 and filter by date
     print("\n--- Crawling pages 1 to 10 ---")
     
