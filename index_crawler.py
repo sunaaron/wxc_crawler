@@ -39,7 +39,7 @@ async def extract_anchor_hrefs(div_elements: List) -> List:
     return href_list
 
 def extract_date_strings(div_elements: List) -> List:
-    """Extract date strings in mm/dd/yyyy format from div elements."""
+    """Extract date strings in mm/dd/yyyy format from div elements, but store them in yyyy/mm/dd format."""
     date_strings = []
     
     for i, div in enumerate(div_elements):
@@ -48,8 +48,13 @@ def extract_date_strings(div_elements: List) -> List:
         date_pattern = r'\b(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/(\d{4})\b'
         match = re.search(date_pattern, div_text)
         if match:
-            date_strings.append(match.group(0))
-            print(f"Div {i+1} - Date found: {match.group(0)}")
+            date_str = match.group(0)
+            month = date_str[0:2]
+            day = date_str[3:5]
+            year = date_str[6:10]
+            new_date_str = f"{year}/{month}/{day}"  
+            date_strings.append(new_date_str)
+            print(f"Div {i+1} - Date found: {new_date_str}")
         else:
             print(f"Div {i+1} - No date found")
     

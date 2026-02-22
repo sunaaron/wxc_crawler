@@ -23,10 +23,6 @@ MYSQL_PASSWORD = '123'
 # Table Configuration
 WXC_POSTS_TABLE = 'wxc_posts'
 
-# Date Format
-DATE_FORMAT_MMDDYYYY = '%m%d%Y'
-DATE_FORMAT_MMDAYYYYY = '%m/%d/%Y'
-
 # Crawler Configuration
 MIN_PAGE_NUMBER = 1
 MAX_PAGE_NUMBER = 10

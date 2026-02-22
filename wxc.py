@@ -69,26 +69,14 @@ async def main(target_date_str=None):
     if target_date_str is None:
         # Calculate target date (3 days back from today)
         target_date = datetime.now() - timedelta(days=3)
-        target_date_str = target_date.strftime("%m/%d/%Y")
+        target_date_str = target_date.strftime("%Y%m%d")
         
-        print(f"Today's date: {datetime.now().strftime('%m/%d/%Y')}")
+        print(f"Today's date: {datetime.now().strftime('%Y%m%d')}")
         print(f"Target date (3 days back): {target_date_str}")
     else:
         # Use the provided date string
         print(f"Using provided target date: {target_date_str}")
-    
-    # Convert the target date to mmddyyyy format for storage
-    # Extract month, day, year from the target_date_str (format mm/dd/yyyy)
-    if "/" in target_date_str:
-        parts = target_date_str.split("/")
-        if len(parts) == 3:
-            # Convert mm/dd/yyyy to mmddyyyy
-            date_for_storage = parts[0] + parts[1] + parts[2]
-        else:
-            date_for_storage = "00000000"  # Default fallback
-    else:
-        date_for_storage = "00000000"  # Default fallback
-    
+        
     # Crawl pages 1 to 10 and filter by date
     print("\n--- Crawling pages 1 to 10 ---")
     
@@ -135,20 +123,19 @@ if __name__ == "__main__":
     # Check if a date string was provided as command line argument
     target_date_str = None
     if len(sys.argv) > 1:
-        # Validate that the argument is in mmddyyyy format
+        # Validate that the argument is in yyyymmdd format
         date_arg = sys.argv[1]
         if len(date_arg) == 8 and date_arg.isdigit():
-            # Convert mmddyyyy to mm/dd/yyyy format
             try:
-                month = date_arg[0:2]
-                day = date_arg[2:4]
-                year = date_arg[4:8]
+                year = date_arg[0:4]
+                month = date_arg[4:6]
+                day = date_arg[6:8]
                 target_date_str = f"{month}/{day}/{year}"
             except:
-                print("Invalid date format. Please use mmddyyyy format.")
+                print("Invalid date format. Please use yyyymmdd format.")
                 sys.exit(1)
         else:
-            print("Invalid date format. Please use mmddyyyy format (e.g., 02212025).")
+            print("Invalid date format. Please use yyyymmdd format (e.g., 20250221).")
             sys.exit(1)
     
     results = asyncio.run(main(target_date_str))
