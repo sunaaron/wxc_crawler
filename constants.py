@@ -4,6 +4,9 @@
 ZNJY_BASE_URL = "https://bbs.wenxuecity.com/znjy/"
 ZNJY_CATEGORY = 'znjy'
 
+TZLC_BASE_URL = "https://bbs.wenxuecity.com/tzlc/"
+TZLC_CATEGORY = 'tzlc'
+
 # Page parameter for pagination
 PAGE_PARAM = "?page="
 
