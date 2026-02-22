@@ -52,7 +52,7 @@ def extract_date_strings(div_elements: List) -> List:
             month = date_str[0:2]
             day = date_str[3:5]
             year = date_str[6:10]
-            new_date_str = f"{year}/{month}/{day}"  
+            new_date_str = f"{year}{month}{day}"  
             date_strings.append(new_date_str)
             print(f"Div {i+1} - Date found: {new_date_str}")
         else:
