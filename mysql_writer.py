@@ -150,6 +150,16 @@ def insert_post_data(post_data, category, date_str=None):
             # this would be determined by the actual crawled date
             date_str = "00000000"  # Default placeholder
 
+        # Convert date format from mmddyyyy to yyyymmdd if needed
+        if date_str and len(date_str) == 8 and date_str.isdigit():
+            # Convert mmddyyyy to yyyymmdd format
+            year = date_str[4:8]
+            month = date_str[0:2]
+            day = date_str[2:4]
+            converted_date_str = f"{year}{month}{day}"
+        else:
+            converted_date_str = date_str  # Keep as-is if not in expected format
+
         post_url = post_data.get('url', '')
         post_title = post_data.get('data', {}).get('post_title', '')
         post_body = post_data.get('data', {}).get('post_content', '')
@@ -158,7 +168,7 @@ def insert_post_data(post_data, category, date_str=None):
         
         # Execute the insert
         cursor.execute(insert_query, (
-            date_str,
+            converted_date_str,
             category,
             post_url,
             post_title,
