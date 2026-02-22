@@ -112,7 +112,7 @@ async def main(target_date_str=None):
         
         if all_post_data:
             # Insert all posts into database
-            success_count = mysql_writer.insert_multiple_posts(all_post_data, ZNJY_CATEGORY, date_for_storage)
+            success_count = mysql_writer.insert_multiple_posts(all_post_data, ZNJY_CATEGORY, target_date_str)
             print(f"Successfully stored {success_count} posts in MySQL database")
         else:
             print("No post data to store in database")
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                 year = date_arg[0:4]
                 month = date_arg[4:6]
                 day = date_arg[6:8]
-                target_date_str = f"{month}/{day}/{year}"
+                target_date_str = f"{year}{month}{day}"
             except:
                 print("Invalid date format. Please use yyyymmdd format.")
                 sys.exit(1)
