@@ -8,6 +8,7 @@ Filter posts where date_str = today_date - 3
 import asyncio
 from datetime import datetime, timedelta
 import sys
+import argparse
 from constants import ZNJY_CATEGORY
 from index_crawler import crawl_index
 from post_crawler import crawl_post
@@ -36,7 +37,7 @@ async def fetch_post_data(href_list, target_date_str):
     
     return post_data_results
 
-async def crawl_and_filter_posts(pages_to_crawl, target_date_str):
+async def crawl_and_filter_posts(pages_to_crawl, category, target_date_str):
     """Crawl pages and filter posts by date."""
     all_matching_posts = {}
     
@@ -45,7 +46,7 @@ async def crawl_and_filter_posts(pages_to_crawl, target_date_str):
         print(f"\nCrawling page {page_num}...")
         
         # Get results from crawl_index function
-        result = await crawl_index(page_num)
+        result = await crawl_index(page_num, category)
         
         # Filter for posts with target date
         matching_posts = {}
@@ -62,7 +63,7 @@ async def crawl_and_filter_posts(pages_to_crawl, target_date_str):
     
     return all_matching_posts
 
-async def main(target_date_str=None):
+async def main(category,target_date_str=None):
     """Main function that implements the requirements."""
     
     # If no date string provided, use default logic (today - 3 days)
@@ -81,7 +82,7 @@ async def main(target_date_str=None):
     print("\n--- Crawling pages 1 to 10 ---")
     
     pages_to_crawl = range(1, 11)  # Pages 1 through 10 inclusive
-    all_matching_posts = await crawl_and_filter_posts(pages_to_crawl, target_date_str)
+    all_matching_posts = await crawl_and_filter_posts(pages_to_crawl, category, target_date_str)
     
     # Display final results
     print("\n=== FINAL RESULTS ===")
@@ -112,7 +113,7 @@ async def main(target_date_str=None):
         
         if all_post_data:
             # Insert all posts into database
-            success_count = mysql_writer.insert_multiple_posts(all_post_data, ZNJY_CATEGORY, target_date_str)
+            success_count = mysql_writer.insert_multiple_posts(all_post_data, category, target_date_str)
             print(f"Successfully stored {success_count} posts in MySQL database")
         else:
             print("No post data to store in database")
@@ -120,11 +121,17 @@ async def main(target_date_str=None):
     return all_matching_posts
 
 if __name__ == "__main__":
-    # Check if a date string was provided as command line argument
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Crawl and filter posts by date")
+    parser.add_argument("--category", default="znjy", help="Category to crawl (default: znjy)")
+    parser.add_argument("--date_str", help="Target date in yyyymmdd format (e.g., 20250221)")
+
+    args = parser.parse_args()
+    
+    # Validate date format if provided
     target_date_str = None
-    if len(sys.argv) > 1:
-        # Validate that the argument is in yyyymmdd format
-        date_arg = sys.argv[1]
+    if args.date_str:
+        date_arg = args.date_str
         if len(date_arg) == 8 and date_arg.isdigit():
             try:
                 year = date_arg[0:4]
@@ -138,4 +145,4 @@ if __name__ == "__main__":
             print("Invalid date format. Please use yyyymmdd format (e.g., 20250221).")
             sys.exit(1)
     
-    results = asyncio.run(main(target_date_str))
+    results = asyncio.run(main(args.category, target_date_str))

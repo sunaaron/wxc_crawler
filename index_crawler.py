@@ -6,6 +6,7 @@ import re
 from typing import List, Optional, Tuple, Dict
 import sys
 from datetime import datetime, timedelta
+from constants import TZLC_CATEGORY, TZLC_BASE_URL
 
 # Import the helper functions from utils module
 from utils import fetch_page_content, parse_html_content
@@ -60,17 +61,21 @@ def extract_date_strings(div_elements: List) -> List:
     
     return date_strings
 
-async def crawl_index(page_number: int) -> Dict[str, List[str]]:
+async def crawl_index(page_number: int, category) -> Dict[str, List[str]]:
     """Main function to orchestrate the web scraping process for a specific page.
     
     Returns:
         Dict[str, List[str]]: Dictionary mapping date strings to lists of hrefs
     """
+    base_url = ZNJY_BASE_URL
+    if category == TZLC_CATEGORY:
+        base_url = TZLC_BASE_URL
+
     # Construct URL with page number
     if page_number <= DEFAULT_PAGE_NUMBER:
-        url = ZNJY_BASE_URL
+        url = base_url
     else:
-        url = f"{ZNJY_BASE_URL}{PAGE_PARAM}{page_number}"
+        url = f"{base_url}{PAGE_PARAM}{page_number}"
     
     print(f"Scraping page {page_number} with URL: {url}")
     
@@ -103,7 +108,7 @@ async def crawl_index(page_number: int) -> Dict[str, List[str]]:
             result_dict[date_str] = []
         # Add the corresponding href if available
         if i < len(href_list):
-            result_dict[date_str].append(ZNJY_BASE_URL + href_list[i].lstrip('./'))
+            result_dict[date_str].append(base_url + href_list[i].lstrip('./'))
     
     # Print results
     print(f"\nTotal hrefs found: {len(href_list)}")
