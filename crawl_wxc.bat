@@ -7,7 +7,7 @@ rem 2. 设定 virtualenv 的名字（与 venv 创建时一致）
 set VENV_NAME=venv
 rem ------------------------------------------------------------
 rem 3. 要执行的命令（Python 脚本、pip install 等）
-set "CMD=git pull && python crawl.py --category znjy && python crawl.py --category tzlc  && echo 任务完成"
+set "CMD=git pull && pip install -r requirements.txt && python crawl.py --category znjy && python crawl.py --category tzlc  && echo 任务完成"
 rem ------------------------------------------------------------
 rem 4. 日志文件（可选）
 set LOG_FILE=%WORK_DIR%\run_%date:~-4%%date:~4,2%%date:~7,2%.log
