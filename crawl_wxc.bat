@@ -1,7 +1,7 @@
 @echo off
 rem ------------------------------------------------------------
 rem 1. 设定工作目录（请改成你自己的路径）
-set WORK_DIR=d:\Workspace\crawl_wxc
+set WORK_DIR=d:\Workspace\wxc_crawler
 rem ------------------------------------------------------------
 rem 2. 设定 virtualenv 的名字（与 venv 创建时一致）
 set VENV_NAME=venv
