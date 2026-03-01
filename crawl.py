@@ -66,14 +66,14 @@ async def crawl_and_filter_posts(pages_to_crawl, category, target_date_str):
 async def main(category,target_date_str=None):
     """Main function that implements the requirements."""
     
-    # If no date string provided, use default logic (today - 3 days)
+    # If no date string provided, use default logic (today - 2 days)
     if target_date_str is None:
-        # Calculate target date (3 days back from today)
-        target_date = datetime.now() - timedelta(days=3)
+        # Calculate target date (2 days back from today)
+        target_date = datetime.now() - timedelta(days=2)
         target_date_str = target_date.strftime("%Y%m%d")
         
         print(f"Today's date: {datetime.now().strftime('%Y%m%d')}")
-        print(f"Target date (3 days back): {target_date_str}")
+        print(f"Target date (2 days back): {target_date_str}")
     else:
         # Use the provided date string
         print(f"Using provided target date: {target_date_str}")
