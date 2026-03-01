@@ -50,73 +50,13 @@ def create_wxc_posts_table():
                 comments TEXT,
                 llm_summary TEXT,
                 is_useful BOOLEAN DEFAULT 0,
+                has_tts BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 INDEX idx_category_date (category, date_str)
             )"""
             
             cursor.execute(create_table_query)
-            print(f"{WXC_POSTS_TABLE} table created successfully with new schema")
-        else:
-            # Table exists, check and modify structure if needed
-            # Check if date_str column exists
-            cursor.execute(f"""
-                SELECT COLUMN_NAME 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = '{MYSQL_DATABASE}' 
-                AND TABLE_NAME = '{WXC_POSTS_TABLE}' 
-                AND COLUMN_NAME = 'date_str'
-            """)
-            
-            date_str_exists = cursor.fetchone()
-            
-            if not date_str_exists:
-                # Add the date_str column
-                alter_query = f"""
-                ALTER TABLE {WXC_POSTS_TABLE} 
-                ADD COLUMN date_str CHAR(8) AFTER id
-                """
-                cursor.execute(alter_query)
-                print(f"Added date_str column to {WXC_POSTS_TABLE} table")
-            
-            # Check if is_useful column exists
-            cursor.execute(f"""
-                SELECT COLUMN_NAME 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = '{MYSQL_DATABASE}' 
-                AND TABLE_NAME = '{WXC_POSTS_TABLE}' 
-                AND COLUMN_NAME = 'is_useful'
-            """)
-            
-            is_useful_exists = cursor.fetchone()
-            
-            if not is_useful_exists:
-                # Add the is_useful column
-                alter_query = f"""
-                ALTER TABLE {WXC_POSTS_TABLE} 
-                ADD COLUMN is_useful BOOLEAN DEFAULT 0
-                """
-                cursor.execute(alter_query)
-                print(f"Added is_useful column to {WXC_POSTS_TABLE} table")
-            
-            # Check if the multi-index exists
-            cursor.execute(f"""
-                SELECT INDEX_NAME 
-                FROM INFORMATION_SCHEMA.STATISTICS 
-                WHERE TABLE_SCHEMA = '{MYSQL_DATABASE}' 
-                AND TABLE_NAME = '{WXC_POSTS_TABLE}' 
-                AND INDEX_NAME = 'idx_category_date'
-            """)
-            
-            index_exists = cursor.fetchone()
-            
-            if not index_exists:
-                # Create the multi-index
-                create_index_query = f"""
-                CREATE INDEX idx_category_date ON {WXC_POSTS_TABLE} (category, date_str)
-                """
-                cursor.execute(create_index_query)
-                print("Created multi-index on category and date_str")
-        
+            print(f"{WXC_POSTS_TABLE} table created successfully with new schema")                    
         connection.commit()
         return True
         
@@ -140,8 +80,8 @@ def insert_post_data(post_data, category, date_str=None):
         # Prepare the insert query
         insert_query = f"""
         INSERT INTO {WXC_POSTS_TABLE} 
-        (date_str, category, post_url, post_title, post_body, comments, llm_summary, is_useful)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        (date_str, category, post_url, post_title, post_body, comments, llm_summary, is_useful, has_tts)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
         # Extract data from post_data structure
         # Use provided date_str or extract from post_data if available
@@ -165,7 +105,8 @@ def insert_post_data(post_data, category, date_str=None):
             post_body,
             comments,
             llm_summary,
-            0  # is_useful defaults to 0 (not useful)
+            0,  # is_useful defaults to 0 (not useful)
+            0   # has_tts defaults to 0 (no TTS)
         ))
         
         connection.commit()
