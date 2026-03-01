@@ -63,7 +63,7 @@ async def crawl_and_filter_posts(pages_to_crawl, category, target_date_str):
     
     return all_matching_posts
 
-async def main(category,target_date_str=None):
+async def main(category, target_date_str=None):
     """Main function that implements the requirements."""
     
     # If no date string provided, use default logic (today - 2 days)
@@ -79,7 +79,10 @@ async def main(category,target_date_str=None):
         print(f"Using provided target date: {target_date_str}")
     
     max_date_str = mysql_writer.read_max_date_by_category(category)
-    if max_date_str >= target_date_str:
+    if not max_date_str:
+        print(f"No existing data for category '{category}' in database. Proceeding with crawling.")
+
+    elif max_date_str >= target_date_str:
         print(f"Data for category '{category}' is already up to date (max date in DB: {max_date_str}). No crawling needed.")
         return {}
 
@@ -105,7 +108,6 @@ async def main(category,target_date_str=None):
         post_data_results = {}
         
         for date_str, href_list in all_matching_posts.items():
-
             post_data_results[date_str] = await fetch_post_data(href_list, target_date_str)
         
         # Store data in MySQL database
