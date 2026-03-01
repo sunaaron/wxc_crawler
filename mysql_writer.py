@@ -48,6 +48,7 @@ def create_wxc_posts_table():
                 post_title VARCHAR(500),
                 post_body TEXT,
                 comments TEXT,
+                num_comments INT DEFAULT 0,
                 llm_summary TEXT,
                 is_useful BOOLEAN DEFAULT 0,
                 has_tts BOOLEAN DEFAULT 0,
@@ -80,8 +81,8 @@ def insert_post_data(post_data, category, date_str=None):
         # Prepare the insert query
         insert_query = f"""
         INSERT INTO {WXC_POSTS_TABLE} 
-        (date_str, category, post_url, post_title, post_body, comments, llm_summary, is_useful, has_tts)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        (date_str, category, post_url, post_title, post_body, comments, num_comments,llm_summary, is_useful, has_tts)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
         # Extract data from post_data structure
         # Use provided date_str or extract from post_data if available
@@ -96,6 +97,10 @@ def insert_post_data(post_data, category, date_str=None):
         comments = json.dumps(post_data.get('data', {}).get('comments', []), ensure_ascii=False)
         llm_summary = ""  # Empty for now, can be populated with LLM analysis
         
+        # Count comments - ensure it's an integer (0 if no comments or invalid data)
+        comments_list = post_data.get('data', {}).get('comments', [])
+        num_comments = len(comments_list) if comments_list is not None else 0
+        
         # Execute the insert
         cursor.execute(insert_query, (
             date_str,
@@ -104,9 +109,10 @@ def insert_post_data(post_data, category, date_str=None):
             post_title,
             post_body,
             comments,
+            num_comments,
             llm_summary,
             0,  # is_useful defaults to 0 (not useful)
-            0   # has_tts defaults to 0 (no TTS)
+            0,   # has_tts defaults to 0 (no TTS)
         ))
         
         connection.commit()
